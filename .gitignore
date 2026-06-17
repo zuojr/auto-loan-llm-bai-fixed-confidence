@@ -1,0 +1,60 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python/cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Editor/OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and Codex local state
+logs/
+.codex/
+
+# Local writing/export bundles and Codex prompt notes
+deliverables/
+CODEX_*.md
+PROMPT_OPTIMIZATION_NOTES.md
+RUN_NEXT_STEPS_PROMPT_OPTIMIZED.md
+SAME_BASE_QWEN_UPDATE.md
+
+# Large or generated data artifacts
+data/raw/*
+processed/*.csv
+predictions/*.csv
+api_scoring/scoring_full_paired.csv
+api_scoring/scoring_pilot_1000.csv
+api_scoring/scoring_gpt_fallback_018.csv
+api_scoring/chunks/
+qwen_finetune/*.jsonl
+qwen_finetune/*/
+models/*.joblib
+
+# Model adapters and transferred result bundles
+*.tar.gz
+*.zip
+
+# Keep curated result summaries, but exclude repetition-level replay traces
+results/fixed_confidence_repetitions_*.csv
+results/final_comparison_table.csv
+results/budget_accuracy_baseline.csv
+results/arm_params_baseline.csv
+results/run_summary_baseline.csv
+
+# Non-main figures
+figures/archive/
+figures/budget_accuracy_baseline.png

@@ -1,0 +1,12 @@
+{
+  "n_total": 208085,
+  "n_train": 50000,
+  "n_eval": 40000,
+  "train_apply_rate": 0.16364,
+  "eval_apply_rate": 0.18205,
+  "train_auc": 0.9269791087238517,
+  "eval_auc": 0.873593370337104,
+  "train_brier": 0.06036866083741188,
+  "eval_brier": 0.17039600014686584,
+  "note": "This fitted demand model defines the replay environment. It is not a reported proxy method."
+}

@@ -1,0 +1,27 @@
+\section{Finite Contextual Policy Classes}
+\label{sec:finite-contextual-policy}
+
+The preceding sections formulate generator-augmented BAI for a finite set of arms. In many applications, however, the object to be selected is not a fixed action but a deployment rule that maps unit contexts to actions. Let \(W\sim\mathcal D\) denote the context of a sampled unit and let \(\mathcal A\) be an action space. Consider a finite class of deployment rules
+\[
+    \Pi=\{\pi_1,\ldots,\pi_n\},\qquad \pi_i:\mathcal W\to\mathcal A.
+\]
+Pulling arm \(i\) means deploying rule \(\pi_i\) on a fresh unit with context \(W_{i,s}\), executing action \(\pi_i(W_{i,s})\), and observing
+\[
+    X_{i,s}=R(W_{i,s},\pi_i(W_{i,s})).
+\]
+A prediction model or LLM may also be queried on the same unit--policy description and return a proxy score
+\[
+    Y_{i,s}=G(W_{i,s},\pi_i,\pi_i(W_{i,s})).
+\]
+The target is the best rule in the finite class,
+\[
+    i^\star=\arg\max_i V(\pi_i),\qquad
+    V(\pi_i)=\mathbb E_{W\sim\mathcal D}[R(W,\pi_i(W))].
+\]
+This is not unrestricted contextual bandit learning. The policy class is fixed in advance, and the goal is to identify the best rule under the target context distribution.
+
+After marginalizing over \(W\), each \(\pi_i\) induces an ordinary paired observation distribution for \((X_{i,s},Y_{i,s})\), with reward mean \(p_i=V(\pi_i)\) and proxy mean \(m_i=\mathbb E[Y_{i,s}]\). The proxy mean may be biased and non-rank-preserving. The control-variate adjustment
+\[
+    Z_{i,s}(\beta)=X_{i,s}-\beta(Y_{i,s}-m_i)
+\]
+therefore preserves the policy value for every \(\beta\). Hence the algorithms and guarantees for paired-observation BAI apply directly to this finite-policy reduction, provided the marginal paired observations satisfy the assumptions of the main model.

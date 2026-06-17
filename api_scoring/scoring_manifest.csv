@@ -1,0 +1,11 @@
+chunk,path,n_rows,start,end_exclusive
+1,chunks/scoring_chunk_01.csv,8000,0,8000
+2,chunks/scoring_chunk_02.csv,8000,8000,16000
+3,chunks/scoring_chunk_03.csv,8000,16000,24000
+4,chunks/scoring_chunk_04.csv,8000,24000,32000
+5,chunks/scoring_chunk_05.csv,8000,32000,40000
+6,chunks/scoring_chunk_06.csv,8000,40000,48000
+7,chunks/scoring_chunk_07.csv,8000,48000,56000
+8,chunks/scoring_chunk_08.csv,8000,56000,64000
+9,chunks/scoring_chunk_09.csv,8000,64000,72000
+10,chunks/scoring_chunk_10.csv,8000,72000,80000

@@ -1,0 +1,8 @@
+{
+  "train_rows": 50000,
+  "train_apply_rate": 0.16364,
+  "train_mean_mp": 584.871479206668,
+  "train_mean_offer_ratio": 0.02046786156036,
+  "train_mean_fico": 731.26758,
+  "instruction": "Use calibration examples as patterns, but anchor probabilities to the global apply rate."
+}

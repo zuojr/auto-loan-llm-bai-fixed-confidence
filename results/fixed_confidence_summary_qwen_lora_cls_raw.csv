@@ -1,0 +1,4 @@
+method,estimator,delta,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_final_L_arm0,mean_final_L_arm1,rho_arm0,rho_arm1
+qwen_lora_cls_raw,baseline,0.05,6790.84,6720.0,9240.0,1.0,0.0,0.0,0.0,0.7246999798767434,0.7065248756491025
+qwen_lora_cls_raw,lcb_cv,0.05,4819.306666666666,4800.0,6240.0,1.0,0.0,0.5987822794098039,0.5891609434243859,0.7246999798767434,0.7065248756491025
+qwen_lora_cls_raw,oracle_cv,0.05,2991.92,2920.0,4160.0,1.0,0.0,0.0,0.0,0.7246999798767434,0.7065248756491025

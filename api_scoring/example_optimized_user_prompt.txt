@@ -1,0 +1,63 @@
+We are running an auto-loan pricing experiment.
+
+A lender observes a loan application and offers a margin price. The customer may accept the offered contract or not accept it. The observed binary outcome is apply=1 if the customer accepts/applies under the offered contract and apply=0 otherwise.
+
+Your task is to estimate the acceptance probability for each application-offer pair:
+pred_prob = P(apply = 1 | application profile, offered contract).
+
+Downstream use: this probability will be converted into an auxiliary proxy reward, proxy = offered margin price × pred_prob. The bandit algorithm will still use realized margin revenue as the true reward; your prediction is not used as a reward or as a direct policy ranking signal.
+
+Calibration discipline:
+- The labeled examples below may be class-balanced for demonstration, so their positive rate is not the true base rate.
+- Use the global historical apply rate as the prior base rate, then adjust upward or downward based on the application profile and offered contract.
+- Do not output 0.50 merely because the examples are balanced.
+- Return calibrated probabilities, not binary decisions.
+
+Global historical calibration stats:
+{
+  "train_rows": 50000,
+  "train_apply_rate": 0.16364,
+  "train_mean_mp": 584.871479206668,
+  "train_mean_offer_ratio": 0.02046786156036,
+  "train_mean_fico": 731.26758,
+  "instruction": "Use calibration examples as patterns, but anchor probabilities to the global apply rate."
+}
+
+Feature interpretation:
+- Primary_FICO is a credit-quality signal, but this is an acceptance task rather than a default-risk task.
+- Tier is an internal segmentation variable.
+- Amount_Approved is the approved loan amount and Term is the loan term in months.
+- Competition_rate summarizes the competitive lending environment.
+- offer_mp is the offered margin price; offer_ratio is offer_mp divided by approved amount.
+- A higher offer may increase revenue if accepted, but it can reduce acceptance probability.
+- State, Type, CarType, and partnerbin may shift customer composition and acceptance behavior.
+- Avoid extreme probabilities unless the row is clearly much stronger or weaker than typical historical applications.
+
+Representative labeled historical examples:
+Example 1: apply=1. This auto-loan application has Primary FICO 795, internal tier 1, state TX, applicant type F, car type U, approved amount $16,645.67, and loan term 48 months. The competitive market rate is 5.20. The offered margin price is $379.95, equal to 2.2826% of the approved amount. The partnerbin indicator is 3. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer.
+Example 2: apply=0. This auto-loan application has Primary FICO 665, internal tier 7, state FL, applicant type F, car type N, approved amount $35,000.00, and loan term 72 months. The competitive market rate is 6.25. The offered margin price is $611.79, equal to 1.7480% of the approved amount. The partnerbin indicator is 1. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer.
+Example 3: apply=1. This auto-loan application has Primary FICO 706, internal tier 2, state NE, applicant type F, car type N, approved amount $17,047.50, and loan term 60 months. The competitive market rate is 5.49. The offered margin price is $327.91, equal to 1.9235% of the approved amount. The partnerbin indicator is 1. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer.
+Example 4: apply=0. This auto-loan application has Primary FICO 688, internal tier 3, state PA, applicant type F, car type N, approved amount $31,000.00, and loan term 60 months. The competitive market rate is 4.89. The offered margin price is $587.14, equal to 1.8940% of the approved amount. The partnerbin indicator is 1. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer.
+
+Now score the following unlabeled application-offer rows.
+For each row, return record_id copied exactly and pred_prob between 0.01 and 0.99.
+
+Rows:
+[
+  {
+    "record_id": "historical_rule_0",
+    "policy_rule": "historical_rule",
+    "multiplier_relative_to_historical_offer": 1.0,
+    "application_offer_description": "This auto-loan application has Primary FICO 712, internal tier 2, state NJ, applicant type F, car type N, approved amount $55,000.00, and loan term 72 months. The competitive market rate is 5.39. The offered margin price is $885.52, equal to 1.6100% of the approved amount. The partnerbin indicator is 1. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer."
+  },
+  {
+    "record_id": "historical_rule_1",
+    "policy_rule": "historical_rule",
+    "multiplier_relative_to_historical_offer": 1.0,
+    "application_offer_description": "This auto-loan application has Primary FICO 739, internal tier 1, state OH, applicant type F, car type N, approved amount $35,000.00, and loan term 60 months. The competitive market rate is 4.49. The offered margin price is $648.53, equal to 1.8530% of the approved amount. The partnerbin indicator is 3. This row is evaluated under policy rule historical_rule with multiplier 1.00 relative to the historical offer."
+  }
+]
+
+Output format: return only a JSON array. Each object must have exactly these keys:
+{"record_id": "...", "pred_prob": 0.123}
+Do not include explanations, markdown, comments, or any extra text. Preserve every record_id.
