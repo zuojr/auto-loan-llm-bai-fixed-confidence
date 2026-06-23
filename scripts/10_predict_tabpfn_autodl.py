@@ -124,7 +124,7 @@ def build_feature_matrices(
     )
 
 
-def make_classifier(backend: str, device: str | None, seed: int):
+def make_classifier(backend: str, device: str | None, seed: int, model_path: str | None = None):
     if backend == "tabpfn":
         try:
             from tabpfn import TabPFNClassifier
@@ -136,6 +136,8 @@ def make_classifier(backend: str, device: str | None, seed: int):
         kwargs = {}
         if device:
             kwargs["device"] = device
+        if model_path:
+            kwargs["model_path"] = model_path
         return TabPFNClassifier(**kwargs)
     if backend == "sklearn":
         from sklearn.ensemble import HistGradientBoostingClassifier
@@ -172,6 +174,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None, help="Optional scoring-row limit for pilots.")
     ap.add_argument("--backend", choices=["tabpfn", "sklearn"], default="tabpfn")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--model-path", default=None, help="Optional local TabPFN checkpoint path.")
     ap.add_argument("--seed", type=int, default=RANDOM_SEED)
     args = ap.parse_args()
 
@@ -187,7 +190,12 @@ def main() -> None:
     X_train, y_train, X_score, record_ids, _ = build_feature_matrices(
         train, scoring, train_size=args.train_size, seed=args.seed
     )
-    model = make_classifier(args.backend, args.device if args.backend == "tabpfn" else None, args.seed)
+    model = make_classifier(
+        args.backend,
+        args.device if args.backend == "tabpfn" else None,
+        args.seed,
+        model_path=args.model_path,
+    )
     print(
         f"Fitting {args.backend} proxy on {len(y_train)} historical rows; "
         f"scoring {len(record_ids)} paired rows with {X_train.shape[1]} encoded features."

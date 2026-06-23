@@ -189,6 +189,15 @@ export DELTA=0.05
 bash scripts/run_tabpfn_autodl_fixed_confidence.sh
 ```
 
+If AutoDL cannot reach Hugging Face, download the classifier checkpoint in a
+browser after accepting the model terms, upload it to AutoDL, and point the
+script to the local file:
+
+```bash
+export TABPFN_MODEL_PATH=/root/autodl-tmp/tabpfn-models/tabpfn-v3-classifier-v3_default.ckpt
+bash scripts/run_tabpfn_autodl_fixed_confidence.sh
+```
+
 For a local smoke test without installing TabPFN, use the sklearn backend:
 
 ```bash

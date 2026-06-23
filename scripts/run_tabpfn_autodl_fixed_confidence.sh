@@ -19,6 +19,10 @@ if [[ -n "${TABPFN_LIMIT:-}" ]]; then
   args+=(--limit "${TABPFN_LIMIT}")
 fi
 
+if [[ -n "${TABPFN_MODEL_PATH:-}" ]]; then
+  args+=(--model-path "${TABPFN_MODEL_PATH}")
+fi
+
 python scripts/10_predict_tabpfn_autodl.py "${args[@]}"
 
 python scripts/04_merge_predictions.py \

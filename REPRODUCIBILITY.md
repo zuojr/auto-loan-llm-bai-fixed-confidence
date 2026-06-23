@@ -182,6 +182,14 @@ export DELTA=0.05
 bash scripts/run_tabpfn_autodl_fixed_confidence.sh
 ```
 
+If AutoDL cannot reach Hugging Face, manually download the TabPFN classifier
+checkpoint after accepting the model terms, upload it to AutoDL, and run with:
+
+```bash
+export TABPFN_MODEL_PATH=/root/autodl-tmp/tabpfn-models/tabpfn-v3-classifier-v3_default.ckpt
+bash scripts/run_tabpfn_autodl_fixed_confidence.sh
+```
+
 The prediction file is:
 
 ```text
