@@ -135,10 +135,17 @@ python scripts/06_collect_fixed_confidence_results.py \
   --methods baseline,qwen_local_icl,qwen_lora_cls_raw,gpt_api
 ```
 
-The paper-ready table with absolute reward-proxy correlations is:
+The LLM/generator-focused paper table with absolute reward-proxy correlations is:
 
 ```text
 results/fixed_confidence_paper_main_table_abs_rho.csv
+```
+
+The five-row paper table including TabPFN as a structured tabular proxy
+reference is:
+
+```text
+results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
 ```
 
 ## Main reported metric
@@ -156,10 +163,11 @@ The primary comparison uses:
 
 The structured boosted proxy is not a reported method.
 
-## Optional appendix: TabPFN structured proxy
+## Structured reference: TabPFN proxy
 
-TabPFN is an appendix/robustness proxy source only. It does not change the main
-four-method experiment.
+TabPFN is a structured tabular proxy reference. It is not an LLM/generator proxy,
+but it can be included in the main results table as a supervised tabular
+reference point.
 
 It trains on historical-block labels from:
 
@@ -215,12 +223,14 @@ python scripts/10_predict_tabpfn_autodl.py \
   --out predictions/tabpfn_smoke_predictions.csv
 ```
 
-Curated appendix results are included in:
+Curated TabPFN structured-reference results are included in:
 
 ```text
+results/fixed_confidence_comparison_table_with_tabpfn.csv
+results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
 results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
 results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
 figures/fixed_confidence_stopping_cdf_tabpfn.png
 ```
 
-The main four-method paper table remains `results/fixed_confidence_final_comparison_table.csv`; TabPFN is reported separately as a structured-proxy appendix result.
+The four-method LLM/generator table remains `results/fixed_confidence_final_comparison_table.csv`; the five-method structured-reference table is `results/fixed_confidence_comparison_table_with_tabpfn.csv`.

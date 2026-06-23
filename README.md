@@ -29,13 +29,19 @@ tests/            Unit tests
 
 ## Included results
 
-The paper-ready table is:
+The LLM/generator-focused four-method paper table is:
 
 ```text
 results/fixed_confidence_paper_main_table_abs_rho.csv
 ```
 
 It reports absolute reward-proxy correlations as proxy-strength diagnostics because negative correlation can still be exploited with a signed control variate.
+
+The five-row paper table including TabPFN as a structured tabular proxy reference is:
+
+```text
+results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
+```
 
 Main paper figures:
 
@@ -153,10 +159,12 @@ For paper presentation, use:
 results/fixed_confidence_paper_main_table_abs_rho.csv
 ```
 
-## Appendix: TabPFN structured proxy
+## Structured reference: TabPFN proxy
 
-TabPFN is included only as an optional appendix/robustness proxy source. It is
-not part of the main four-method comparison.
+TabPFN is included as a structured tabular proxy reference. It is not an
+LLM/generator proxy, but it is useful in the main results as a reference point
+for how Gen-CV behaves when the auxiliary predictor is a specialized supervised
+tabular model.
 
 TabPFN predicts acceptance probability from structured application-offer
 features. The replay proxy is:
@@ -208,7 +216,7 @@ python scripts/10_predict_tabpfn_autodl.py \
   --out predictions/tabpfn_smoke_predictions.csv
 ```
 
-To include TabPFN in an appendix table after the replay finishes:
+To collect the five-method table after the replay finishes:
 
 ```bash
 python scripts/06_collect_fixed_confidence_results.py \
@@ -220,17 +228,19 @@ whitelist. It does not use leakage columns such as `prob_accept`,
 `expected_reward_env`, `observed_apply`, realized rewards, proxy columns,
 `record_id`, `base_row_id`, or `profile_text`.
 
-Curated TabPFN appendix outputs are included:
+Curated TabPFN structured-reference outputs are included:
 
 ```text
 results/fixed_confidence_summary_tabpfn.csv
 results/fixed_confidence_arm_params_tabpfn.csv
+results/fixed_confidence_comparison_table_with_tabpfn.csv
+results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
 results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
 results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
 figures/fixed_confidence_stopping_cdf_tabpfn.png
 ```
 
-The appendix result is:
+The TabPFN structured-reference result is:
 
 | Method | Estimator | Mean stop pulls | Median | Q90 | Correct at stop | abs rho arm0 | abs rho arm1 | Saving vs baseline |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|

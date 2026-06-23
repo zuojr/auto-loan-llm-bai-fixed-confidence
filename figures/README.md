@@ -9,6 +9,6 @@ Main paper figures:
 
 The old fixed-budget figure and exploratory archived figures are excluded from git.
 
-Appendix robustness figure:
+Structured-reference figure:
 
 - `fixed_confidence_stopping_cdf_tabpfn.png`
