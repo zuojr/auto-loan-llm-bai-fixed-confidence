@@ -46,11 +46,16 @@ results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
 Main paper figures:
 
 ```text
+figures/fixed_confidence_mean_stop_with_tabpfn.png
 figures/fixed_confidence_stopping_cdf_baseline.png
 figures/fixed_confidence_stopping_cdf_qwen_local_icl.png
 figures/fixed_confidence_stopping_cdf_qwen_lora_cls_raw.png
 figures/fixed_confidence_stopping_cdf_gpt_api.png
 ```
+
+For a compact main-text visualization with TabPFN included, use
+`figures/fixed_confidence_mean_stop_with_tabpfn.png`. The per-method CDF plots
+can be used as supporting figures.
 
 ## Install CPU environment
 
@@ -237,6 +242,7 @@ results/fixed_confidence_comparison_table_with_tabpfn.csv
 results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
 results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
 results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
+figures/fixed_confidence_mean_stop_with_tabpfn.png
 figures/fixed_confidence_stopping_cdf_tabpfn.png
 ```
 
