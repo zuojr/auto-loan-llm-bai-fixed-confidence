@@ -220,6 +220,22 @@ whitelist. It does not use leakage columns such as `prob_accept`,
 `expected_reward_env`, `observed_apply`, realized rewards, proxy columns,
 `record_id`, `base_row_id`, or `profile_text`.
 
+Curated TabPFN appendix outputs are included:
+
+```text
+results/fixed_confidence_summary_tabpfn.csv
+results/fixed_confidence_arm_params_tabpfn.csv
+results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
+results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
+figures/fixed_confidence_stopping_cdf_tabpfn.png
+```
+
+The appendix result is:
+
+| Method | Estimator | Mean stop pulls | Median | Q90 | Correct at stop | abs rho arm0 | abs rho arm1 | Saving vs baseline |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| TabPFN structured proxy | lcb_cv | 4263.1 | 4240 | 5520 | 1.000 | 0.822 | 0.760 | 37.2% |
+
 ## Tests
 
 ```bash

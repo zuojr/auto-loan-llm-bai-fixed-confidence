@@ -214,3 +214,13 @@ python scripts/10_predict_tabpfn_autodl.py \
   --scoring api_scoring/scoring_pilot_1000.csv \
   --out predictions/tabpfn_smoke_predictions.csv
 ```
+
+Curated appendix results are included in:
+
+```text
+results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
+results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
+figures/fixed_confidence_stopping_cdf_tabpfn.png
+```
+
+The main four-method paper table remains `results/fixed_confidence_final_comparison_table.csv`; TabPFN is reported separately as a structured-proxy appendix result.
