@@ -47,15 +47,17 @@ Main paper figures:
 
 ```text
 figures/fixed_confidence_mean_stop_with_tabpfn.png
+figures/fixed_confidence_stopping_cdf_with_tabpfn.png
 figures/fixed_confidence_stopping_cdf_baseline.png
 figures/fixed_confidence_stopping_cdf_qwen_local_icl.png
 figures/fixed_confidence_stopping_cdf_qwen_lora_cls_raw.png
 figures/fixed_confidence_stopping_cdf_gpt_api.png
 ```
 
-For a compact main-text visualization with TabPFN included, use
-`figures/fixed_confidence_mean_stop_with_tabpfn.png`. The per-method CDF plots
-can be used as supporting figures.
+For compact main-text visualization with TabPFN included, use
+`figures/fixed_confidence_mean_stop_with_tabpfn.png`. For the full distribution
+of fixed-confidence stopping times across the reported estimators, use
+`figures/fixed_confidence_stopping_cdf_with_tabpfn.png`.
 
 ## Install CPU environment
 

@@ -3,6 +3,7 @@
 Main paper figures:
 
 - `fixed_confidence_mean_stop_with_tabpfn.png`
+- `fixed_confidence_stopping_cdf_with_tabpfn.png`
 - `fixed_confidence_stopping_cdf_baseline.png`
 - `fixed_confidence_stopping_cdf_qwen_local_icl.png`
 - `fixed_confidence_stopping_cdf_qwen_lora_cls_raw.png`
