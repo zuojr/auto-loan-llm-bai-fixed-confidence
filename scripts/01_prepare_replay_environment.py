@@ -16,6 +16,15 @@ from src.auto_loan_utils import (
 from src.config import TRAIN_N, EVAL_N, TARGET, RANDOM_SEED
 
 
+TABPFN_TRAIN_COLUMNS = [
+    TARGET,
+    'Primary_FICO', 'Tier', 'Term', 'Amount_Approved', 'Competition_rate',
+    'offer_mp', 'offer_ratio', 'partnerbin', 'CarType_id',
+    'days', 'weeks', 'months', 'termclass',
+    'State', 'Type', 'CarType',
+]
+
+
 def make_balanced_examples(train: pd.DataFrame, out_csv: Path, n_pos=80, n_neg=80, seed=20260610):
     rng = np.random.default_rng(seed)
     pos = train[train[TARGET] == 1]
@@ -26,6 +35,24 @@ def make_balanced_examples(train: pd.DataFrame, out_csv: Path, n_pos=80, n_neg=8
     # Compact columns only; no hidden replay probabilities.
     keep = ['Tier','Primary_FICO','State','Type','Term','Amount_Approved','Competition_rate','CarType','partnerbin','mp','mp_rto_amtfinance', TARGET]
     ex[keep].to_csv(out_csv, index=False)
+
+
+def make_historical_train_rows(train: pd.DataFrame, out_csv: Path) -> None:
+    """Write historical labeled rows for optional structured TabPFN proxy training.
+
+    This file intentionally contains only historical-block labels and structured
+    application-offer features. It does not include replay-environment columns,
+    row identifiers, natural-language prompt text, realized rewards, or proxy
+    columns.
+    """
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    hist = train.copy()
+    hist['offer_mp'] = hist['mp'].astype(float)
+    hist['offer_ratio'] = hist['mp_rto_amtfinance'].astype(float)
+    missing = [c for c in TABPFN_TRAIN_COLUMNS if c not in hist.columns]
+    if missing:
+        raise ValueError(f"Historical train rows missing required TabPFN columns: {missing}")
+    hist[TABPFN_TRAIN_COLUMNS].to_csv(out_csv, index=False)
 
 
 def make_api_scoring_files(paired: pd.DataFrame, out_dir: Path, chunk_size=8000):
@@ -107,6 +134,7 @@ def main():
 
     paired = build_two_policy_pool(model, eval_pool)
     paired.to_csv(out/'processed/paired_policy_eval_pool.csv', index=False)
+    make_historical_train_rows(train, out/'processed/historical_train_rows.csv')
     policy_summary_from_environment(paired).to_csv(out/'results/policy_summary.csv', index=False)
     make_api_scoring_files(paired, out/'api_scoring', chunk_size=args.chunk_size)
 
