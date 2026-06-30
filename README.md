@@ -28,6 +28,13 @@ The current comparison uses:
 
 The main metric is fixed-confidence stopping time under PROBE.
 
+The repository also includes synthetic simulations, adapted to the current
+PROBE algorithm:
+
+1. a paired Gaussian benchmark with non-rank-preserving proxy means;
+2. residual-variance certificate diagnostics;
+3. fitted-model proxy simulations in a nonlinear feature environment.
+
 ## Repository Map
 
 ```text
@@ -61,6 +68,14 @@ results/probe_summary_gpt_api.csv
 results/probe_summary_tabpfn.csv
 ```
 
+Synthetic simulation outputs:
+
+```text
+results/simulation_probe_gaussian_benchmark.csv
+results/simulation_probe_correlation_diagnostics.csv
+results/simulation_probe_ml_proxy.csv
+```
+
 Per-method figures:
 
 ```text
@@ -70,6 +85,17 @@ figures/probe_stopping_cdf_qwen_local_icl.png
 figures/probe_stopping_cdf_qwen_lora_cls_raw.png
 figures/probe_stopping_cdf_gpt_api.png
 figures/probe_stopping_cdf_tabpfn.png
+```
+
+Synthetic simulation figures:
+
+```text
+figures/simulation_probe_gaussian_samples.png
+figures/simulation_probe_gaussian_ratio.png
+figures/simulation_probe_learning_time.png
+figures/simulation_probe_certificate_failure.png
+figures/simulation_probe_ml_proxy_alignment.png
+figures/simulation_probe_ml_proxy_ratios.png
 ```
 
 Current 3000-repetition PROBE results:
@@ -215,6 +241,17 @@ This writes:
 ```text
 figures/probe_stopping_cdf_all_methods.png
 ```
+
+## Run Synthetic Simulations
+
+The simulation settings use the Gaussian, certificate-diagnostic, and
+fitted-model proxy designs, with the replay algorithms updated to PROBE:
+
+```bash
+python scripts/30_run_probe_simulations.py
+```
+
+This writes the simulation CSVs under `results/` and figures under `figures/`.
 
 ## TabPFN Structured Proxy
 

@@ -94,6 +94,37 @@ results/probe_comparison_table.csv
 figures/probe_stopping_cdf_all_methods.png
 ```
 
+## Synthetic Simulations
+
+Run the PROBE-adapted simulations:
+
+```bash
+python scripts/30_run_probe_simulations.py
+```
+
+The script runs:
+
+- paired Gaussian benchmark over `rho in {0, 0.2, 0.4, 0.6, 0.8, 0.9}` with
+  120 repetitions per point;
+- one-arm residual-variance certificate diagnostics with 500 learning
+  repetitions and 15,000 undercoverage repetitions per `rho`;
+- nonlinear fitted-model proxy simulation using linear, decision-tree, and
+  gradient-boosting proxies.
+
+Simulation outputs:
+
+```text
+results/simulation_probe_gaussian_benchmark.csv
+results/simulation_probe_correlation_diagnostics.csv
+results/simulation_probe_ml_proxy.csv
+figures/simulation_probe_gaussian_samples.png
+figures/simulation_probe_gaussian_ratio.png
+figures/simulation_probe_learning_time.png
+figures/simulation_probe_certificate_failure.png
+figures/simulation_probe_ml_proxy_alignment.png
+figures/simulation_probe_ml_proxy_ratios.png
+```
+
 Per-method outputs:
 
 ```text
@@ -127,5 +158,5 @@ The structured boosted proxy is not a reported method.
 
 ```bash
 python -m pytest -q
-python -m py_compile src/probe_replay.py scripts/19_run_probe_replay.py scripts/20_collect_probe_results.py scripts/21_plot_probe_cdf_all_methods.py
+python -m py_compile src/probe_replay.py src/probe_simulations.py scripts/19_run_probe_replay.py scripts/20_collect_probe_results.py scripts/21_plot_probe_cdf_all_methods.py scripts/30_run_probe_simulations.py
 ```

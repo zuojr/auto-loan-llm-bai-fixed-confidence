@@ -65,3 +65,12 @@ results/probe_comparison_table.csv
 
 Repetition-level traces are generated as `results/probe_repetitions_*.csv` and
 are excluded from git.
+
+## Synthetic Simulations
+
+Run the PROBE version of the Gaussian, certificate-diagnostic, and fitted-model
+proxy simulations with:
+
+```bash
+python scripts/30_run_probe_simulations.py
+```

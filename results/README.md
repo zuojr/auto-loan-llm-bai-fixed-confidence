@@ -24,3 +24,9 @@ Per-method arm/proxy diagnostics:
 
 Repetition-level traces are generated as `probe_repetitions_*.csv` and are
 excluded from git.
+
+PROBE simulation result tables:
+
+- `simulation_probe_gaussian_benchmark.csv`
+- `simulation_probe_correlation_diagnostics.csv`
+- `simulation_probe_ml_proxy.csv`
