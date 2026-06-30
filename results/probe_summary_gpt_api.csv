@@ -1,0 +1,2 @@
+method,estimator,delta,kappa,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_rounds,s_cal,reward_scale,abs_rho_arm0,abs_rho_arm1,signed_rho_arm0,signed_rho_arm1
+gpt_api,probe,0.05,1.0,95590.52833333334,95715.5,97560.4,1.0,0.0,3.0,372.0,227.85024619624323,0.2642973794084722,0.3267149788892813,-0.2642973794084722,-0.3267149788892813

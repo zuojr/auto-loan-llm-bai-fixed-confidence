@@ -50,6 +50,7 @@ models/*.joblib
 
 # Keep curated result summaries, but exclude repetition-level replay traces
 results/fixed_confidence_repetitions_*.csv
+results/probe_repetitions_*.csv
 results/final_comparison_table.csv
 results/budget_accuracy_baseline.csv
 results/arm_params_baseline.csv

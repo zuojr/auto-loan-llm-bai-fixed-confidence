@@ -1,4 +1,0 @@
-method,estimator,delta,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_final_L_arm0,mean_final_L_arm1,mean_final_signed_L_arm0,mean_final_signed_L_arm1,rho_arm0,rho_arm1,signed_rho_arm0,signed_rho_arm1,abs_rho_arm0,abs_rho_arm1
-gpt_api_signed,baseline,0.05,6781.44,6660.0,9280.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.2642973794084722,-0.3267149788892813,0.2642973794084722,0.3267149788892813
-gpt_api_signed,signed_lcb_cv,0.05,6573.72,6440.0,9040.0,1.0,0.0,0.0,0.0,-0.14878040421067892,-0.2109756485544254,0.0,0.0,-0.2642973794084722,-0.3267149788892813,0.2642973794084722,0.3267149788892813
-gpt_api_signed,signed_oracle_cv,0.05,6155.1866666666665,6080.0,8440.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,-0.2642973794084722,-0.3267149788892813,0.2642973794084722,0.3267149788892813

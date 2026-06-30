@@ -1,4 +1,0 @@
-method,estimator,delta,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_final_L_arm0,mean_final_L_arm1,rho_arm0,rho_arm1
-gpt_api,baseline,0.05,6723.533333333334,6600.0,9163.999999999996,1.0,0.0,0.0,0.0,0.0,0.0
-gpt_api,lcb_cv,0.05,6744.72,6640.0,9200.0,1.0,0.0,0.0,0.0,0.0,0.0
-gpt_api,oracle_cv,0.05,6766.533333333334,6720.0,9080.0,1.0,0.0,0.0,0.0,0.0,0.0

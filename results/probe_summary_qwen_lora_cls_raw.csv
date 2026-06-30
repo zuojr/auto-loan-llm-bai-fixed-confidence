@@ -1,0 +1,2 @@
+method,estimator,delta,kappa,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_rounds,s_cal,reward_scale,abs_rho_arm0,abs_rho_arm1,signed_rho_arm0,signed_rho_arm1
+qwen_lora_cls_raw,probe,0.05,1.0,52036.229,52315.5,54477.1,1.0,0.0,3.0,372.0,227.85024619624323,0.7246999798767431,0.7065248756491025,0.7246999798767431,0.7065248756491025

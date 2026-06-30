@@ -1,16 +1,12 @@
 # Figures Directory
 
-Main paper figures:
+Current PROBE figures:
 
-- `fixed_confidence_mean_stop_with_tabpfn.png`
-- `fixed_confidence_stopping_cdf_with_tabpfn.png`
-- `fixed_confidence_stopping_cdf_baseline.png`
-- `fixed_confidence_stopping_cdf_qwen_local_icl.png`
-- `fixed_confidence_stopping_cdf_qwen_lora_cls_raw.png`
-- `fixed_confidence_stopping_cdf_gpt_api.png`
+- `probe_stopping_cdf_baseline.png`
+- `probe_stopping_cdf_qwen_local_icl.png`
+- `probe_stopping_cdf_qwen_lora_cls_raw.png`
+- `probe_stopping_cdf_gpt_api.png`
+- `probe_stopping_cdf_tabpfn.png`
 
-The old fixed-budget figure and exploratory archived figures are excluded from git.
-
-Structured-reference figure:
-
-- `fixed_confidence_stopping_cdf_tabpfn.png`
+Older fixed-budget and pre-PROBE figures are not part of the current reported
+algorithm.

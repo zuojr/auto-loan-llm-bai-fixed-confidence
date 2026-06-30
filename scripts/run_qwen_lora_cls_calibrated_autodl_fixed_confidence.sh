@@ -38,10 +38,11 @@ python scripts/12_calibrate_qwen_lora_cls.py \
   --raw-pred predictions/qwen_lora_cls_raw_predictions.csv \
   --method qwen_lora_cls_calibrated
 
-python scripts/05_run_fixed_confidence_replay.py \
+python scripts/19_run_probe_replay.py \
   --input processed/paired_policy_eval_pool_with_qwen_lora_cls_calibrated.csv \
   --proxy-col proxy_qwen_lora_cls_calibrated \
   --method qwen_lora_cls_calibrated \
   --reps ${REPS:-3000} \
   --delta ${DELTA:-0.05} \
-  --batch-size ${BATCH_SIZE:-20}
+  --kappa ${KAPPA:-1.0} \
+  --max-pulls ${MAX_PULLS:-1000000}

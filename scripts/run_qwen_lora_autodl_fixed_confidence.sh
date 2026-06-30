@@ -16,10 +16,11 @@ python scripts/08_predict_qwen_lora_autodl.py \
   --out predictions/qwen_lora_predictions.csv \
   --batch-size ${PRED_BATCH_SIZE:-4}
 python scripts/04_merge_predictions.py --pred predictions/qwen_lora_predictions.csv --method qwen_lora
-python scripts/05_run_fixed_confidence_replay.py \
+python scripts/19_run_probe_replay.py \
   --input processed/paired_policy_eval_pool_with_qwen_lora.csv \
   --proxy-col proxy_qwen_lora \
   --method qwen_lora \
   --reps ${REPS:-3000} \
   --delta ${DELTA:-0.05} \
-  --batch-size ${BATCH_SIZE:-20}
+  --kappa ${KAPPA:-1.0} \
+  --max-pulls ${MAX_PULLS:-1000000}

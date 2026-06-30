@@ -1,2 +1,0 @@
-method,estimator,delta,mean_stop_pulls,median_stop_pulls,q90_stop_pulls,empirical_correct_at_stop,truncated_rate,mean_final_L_arm0,mean_final_L_arm1,rho_arm0,rho_arm1
-baseline,baseline,0.05,6787.693333333334,6720.0,9360.0,1.0,0.0,0.0,0.0,0.0,0.0
