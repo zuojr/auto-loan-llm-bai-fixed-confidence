@@ -1,21 +1,24 @@
 # Reproducibility Guide
 
-This repository contains the code used for the fixed-confidence Auto-loan Gen-CV-BAI experiment.
+This repository contains implementation code and curated outputs for the
+current Auto-loan Gen-CV-BAI experiment using PDF Algorithm 1 PROBE.
 
-## What is included
+## Included
 
-- Experiment scripts in `scripts/`
-- Shared replay and utility code in `src/`
-- Unit tests in `tests/`
-- Dependency files for CPU and AutoDL/GPU runs
-- Curated fixed-confidence result summaries in `results/`
-- Main fixed-confidence CDF figures in `figures/`
+- experiment scripts in `scripts/`
+- shared replay and utility code in `src/`
+- unit tests in `tests/`
+- dependency files for CPU and AutoDL/GPU runs
+- curated PROBE result summaries in `results/`
+- curated PROBE CDF figures in `figures/`
 
-Large generated files are intentionally excluded from git: raw data, processed replay pools, model adapters, full predictions, and repetition-level traces.
+Large generated files are intentionally excluded from git: raw data, processed
+replay pools, model adapters, full prediction CSVs, API scoring CSVs, and
+repetition-level replay traces.
 
-## Data
+## Data Preparation
 
-To reproduce the full pipeline from raw data, place the raw auto-loan CSV at:
+Place the raw auto-loan CSV at:
 
 ```text
 data/raw/CPRM_AutoLOan_OnlineAutoLoanData.csv
@@ -27,19 +30,11 @@ Then run:
 python scripts/01_prepare_replay_environment.py
 ```
 
-This generates:
+This generates the processed replay pools, API scoring rows, and Qwen training
+JSONL files. LLM prompts must not include replay-environment columns such as
+`prob_accept`, `expected_reward_env`, or `observed_apply`.
 
-```text
-processed/paired_policy_eval_pool.csv
-api_scoring/scoring_full_paired.csv
-api_scoring/scoring_pilot_1000.csv
-qwen_finetune/train_full.jsonl
-qwen_finetune/val_full.jsonl
-```
-
-The LLM prompts must not include replay-environment columns such as `prob_accept`, `expected_reward_env`, or `observed_apply`.
-
-## CPU environment
+## CPU Environment
 
 ```bash
 python -m venv .venv
@@ -55,184 +50,82 @@ python -m venv .venv
 pip install -r requirements_cpu.txt
 ```
 
-## Baseline
+## Proxy Generation
+
+Generate or sync prediction CSVs for:
+
+- `qwen_local_icl`
+- `qwen_lora_cls_raw`
+- `gpt_api`
+- `tabpfn`
+
+Qwen local ICL and Qwen LoRA should use the same base checkpoint:
+
+```bash
+export QWEN_BASE_MODEL="Qwen/Qwen2.5-7B-Instruct"
+```
+
+API keys must be provided only through shell environment variables and must not
+be written to repository files.
+
+## PROBE Replay
+
+Run all replay jobs:
 
 ```bash
 bash scripts/run_baseline_fixed_confidence.sh
+bash scripts/run_qwen_local_icl_autodl_fixed_confidence.sh
+bash scripts/run_qwen_lora_cls_raw_autodl_fixed_confidence.sh
+bash scripts/run_gpt_api_pipeline_fixed_confidence.sh
+bash scripts/run_tabpfn_autodl_fixed_confidence.sh
+```
+
+Collect the comparison table and draw the combined CDF figure:
+
+```bash
+python scripts/20_collect_probe_results.py
+python scripts/21_plot_probe_cdf_all_methods.py
 ```
 
 Main outputs:
 
 ```text
-results/fixed_confidence_summary_baseline.csv
-results/fixed_confidence_arm_params_baseline.csv
-figures/fixed_confidence_stopping_cdf_baseline.png
+results/probe_comparison_table.csv
+figures/probe_stopping_cdf_all_methods.png
 ```
 
-## Qwen local ICL on AutoDL
-
-Use the same base checkpoint as the LoRA run:
-
-```bash
-pip install -r requirements_autodl_qwen.txt
-export HF_ENDPOINT=https://hf-mirror.com
-export QWEN_BASE_MODEL="Qwen/Qwen2.5-7B-Instruct"
-export LOCAL_ICL_ROWS_PER_CALL=6
-export LOCAL_ICL_N_EXAMPLES=12
-export REPS=3000
-export DELTA=0.05
-bash scripts/run_qwen_local_icl_autodl_fixed_confidence.sh
-```
-
-## Qwen LoRA raw classification proxy on AutoDL
-
-This is the reported Qwen fine-tuning method.
-
-```bash
-pip install -r requirements_autodl_qwen.txt
-export HF_ENDPOINT=https://hf-mirror.com
-export QWEN_BASE_MODEL="Qwen/Qwen2.5-7B-Instruct"
-export QWEN_CLS_LORA_DIR="qwen_finetune/qwen_lora_cls_auto_loan"
-export EPOCHS=1
-export TRAIN_BATCH_SIZE=1
-export GRAD_ACCUM=16
-export CLS_PRED_BATCH_SIZE=16
-export REPS=3000
-export DELTA=0.05
-bash scripts/run_qwen_lora_cls_raw_autodl_fixed_confidence.sh
-```
-
-## GPT API ICL
-
-Set the API key only in the shell. Do not store it in git or in a file.
-
-```bash
-export OPENAI_API_KEY="<YOUR_OPENAI_API_KEY>"
-export OPENAI_MODEL="<YOUR_GPT_MODEL>"
-export ROWS_PER_CALL=50
-export REPS=3000
-export DELTA=0.05
-bash scripts/run_gpt_api_pipeline_fixed_confidence.sh
-```
-
-If using PowerShell:
-
-```powershell
-$env:OPENAI_API_KEY = "<YOUR_OPENAI_API_KEY>"
-$env:OPENAI_MODEL = "<YOUR_GPT_MODEL>"
-$env:ROWS_PER_CALL = "50"
-$env:REPS = "3000"
-$env:DELTA = "0.05"
-bash scripts/run_gpt_api_pipeline_fixed_confidence.sh
-```
-
-## Final table
-
-After all four main methods finish:
-
-```bash
-python scripts/06_collect_fixed_confidence_results.py \
-  --methods baseline,qwen_local_icl,qwen_lora_cls_raw,gpt_api
-```
-
-The LLM/generator-focused paper table with absolute reward-proxy correlations is:
+Per-method outputs:
 
 ```text
-results/fixed_confidence_paper_main_table_abs_rho.csv
+results/probe_summary_baseline.csv
+results/probe_summary_qwen_local_icl.csv
+results/probe_summary_qwen_lora_cls_raw.csv
+results/probe_summary_gpt_api.csv
+results/probe_summary_tabpfn.csv
+figures/probe_stopping_cdf_baseline.png
+figures/probe_stopping_cdf_qwen_local_icl.png
+figures/probe_stopping_cdf_qwen_lora_cls_raw.png
+figures/probe_stopping_cdf_gpt_api.png
+figures/probe_stopping_cdf_tabpfn.png
 ```
 
-The five-row paper table including TabPFN as a structured tabular proxy
-reference is:
+## Reported Metric
 
-```text
-results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
-```
-
-## Main reported metric
-
-The main reported metric is fixed-confidence stopping time, not fixed-budget accuracy.
-
-The primary comparison uses:
+The main metric is fixed-confidence stopping time under PROBE, not fixed-budget
+accuracy. The comparison table reports:
 
 - `mean_stop_pulls`
 - `median_stop_pulls`
 - `q90_stop_pulls`
 - `empirical_correct_at_stop`
-- `|rho|` for proxy strength diagnostics
+- absolute reward-proxy correlations for diagnostics
 - `sample_saving_vs_baseline`
 
 The structured boosted proxy is not a reported method.
 
-## Structured reference: TabPFN proxy
-
-TabPFN is a structured tabular proxy reference. It is not an LLM/generator proxy,
-but it can be included in the main results table as a supervised tabular
-reference point.
-
-It trains on historical-block labels from:
-
-```text
-processed/historical_train_rows.csv
-```
-
-This file is generated by `scripts/01_prepare_replay_environment.py` and
-contains only the allowed structured features plus `apply`.
-
-Run on AutoDL/GPU:
+## Verification
 
 ```bash
-pip install -r requirements_autodl_tabpfn.txt
-export TABPFN_BACKEND=tabpfn
-export TABPFN_DEVICE=cuda
-export TABPFN_TRAIN_SIZE=50000
-export REPS=3000
-export DELTA=0.05
-bash scripts/run_tabpfn_autodl_fixed_confidence.sh
+python -m pytest -q
+python -m py_compile src/probe_replay.py scripts/19_run_probe_replay.py scripts/20_collect_probe_results.py scripts/21_plot_probe_cdf_all_methods.py
 ```
-
-If AutoDL cannot reach Hugging Face, manually download the TabPFN classifier
-checkpoint after accepting the model terms, upload it to AutoDL, and run with:
-
-```bash
-export TABPFN_MODEL_PATH=/root/autodl-tmp/tabpfn-models/tabpfn-v3-classifier-v3_default.ckpt
-bash scripts/run_tabpfn_autodl_fixed_confidence.sh
-```
-
-The prediction file is:
-
-```text
-predictions/tabpfn_predictions.csv
-```
-
-with exactly:
-
-```text
-record_id,pred_prob
-```
-
-The merge step creates `proxy_tabpfn = offer_mp * pred_prob`, and the same
-fixed-confidence replay is then run with `proxy_tabpfn`.
-
-For a small local smoke test:
-
-```bash
-python scripts/10_predict_tabpfn_autodl.py \
-  --backend sklearn \
-  --train-size 2000 \
-  --scoring api_scoring/scoring_pilot_1000.csv \
-  --out predictions/tabpfn_smoke_predictions.csv
-```
-
-Curated TabPFN structured-reference results are included in:
-
-```text
-results/fixed_confidence_comparison_table_with_tabpfn.csv
-results/fixed_confidence_paper_table_abs_rho_with_tabpfn.csv
-results/fixed_confidence_appendix_comparison_table_with_tabpfn.csv
-results/fixed_confidence_appendix_table_abs_rho_with_tabpfn.csv
-figures/fixed_confidence_mean_stop_with_tabpfn.png
-figures/fixed_confidence_stopping_cdf_with_tabpfn.png
-figures/fixed_confidence_stopping_cdf_tabpfn.png
-```
-
-The four-method LLM/generator table remains `results/fixed_confidence_final_comparison_table.csv`; the five-method structured-reference table is `results/fixed_confidence_comparison_table_with_tabpfn.csv`.

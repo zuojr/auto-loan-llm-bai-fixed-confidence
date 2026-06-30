@@ -2,6 +2,7 @@
 
 Current PROBE figures:
 
+- `probe_stopping_cdf_all_methods.png`
 - `probe_stopping_cdf_baseline.png`
 - `probe_stopping_cdf_qwen_local_icl.png`
 - `probe_stopping_cdf_qwen_lora_cls_raw.png`

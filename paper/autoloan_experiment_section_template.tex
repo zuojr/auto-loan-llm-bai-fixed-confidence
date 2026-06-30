@@ -1,8 +1,0 @@
-\section{Auto-loan finite contextual policy-rule replay}
-\label{sec:autoloan-llm-replay}
-
-We evaluate the generator-augmentation mechanism on an online auto-loan replay. This experiment instantiates the finite contextual policy-class formulation. A unit context \(W\) is a loan application record; the action is an offered margin price; and each arm is a pricing rule mapping the application context to an offer. The two rules are the historical company pricing rule and a support-constrained improved rule that chooses a multiplier from \(\{0.8,0.9,1.0,1.1,1.2\}\) times the historical offer.
-
-A pull samples an application from the later-period evaluation pool, applies one of the two pricing rules, draws acceptance from the fitted replay demand model, and returns realized margin revenue. The LLM proxy score is generated for the same application--rule pair and is converted to predicted revenue by multiplying the model's predicted acceptance probability by the offered margin price. The proxy is not used as a reward or as a direct ranking signal; it enters only through same-unit reward--proxy covariance.
-
-We compare four methods: reward-only EGE, Qwen API in-context scoring without fine-tuning, fine-tuned Qwen, and GPT API in-context scoring without fine-tuning. All LLM variants use the same paired scoring rows and the same Gen-CV-EGE replay code; only the proxy predictions differ.

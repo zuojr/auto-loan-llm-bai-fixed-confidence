@@ -1,6 +1,6 @@
 # PROBE Fixed-confidence Workflow
 
-Use this workflow for the current paper experiment. The replay algorithm is
+Use this workflow for the current experiment. The replay algorithm is
 PDF Algorithm 1 PROBE, not the earlier Gaussian-CI replay.
 
 ## Methods
@@ -44,6 +44,7 @@ python scripts/19_run_probe_replay.py \
   --reps 3000 --delta 0.05 --kappa 1.0
 
 python scripts/20_collect_probe_results.py
+python scripts/21_plot_probe_cdf_all_methods.py
 ```
 
 ## Algorithm

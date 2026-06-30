@@ -64,6 +64,7 @@ results/probe_summary_tabpfn.csv
 Per-method figures:
 
 ```text
+figures/probe_stopping_cdf_all_methods.png
 figures/probe_stopping_cdf_baseline.png
 figures/probe_stopping_cdf_qwen_local_icl.png
 figures/probe_stopping_cdf_qwen_lora_cls_raw.png
@@ -203,6 +204,18 @@ This writes:
 results/probe_comparison_table.csv
 ```
 
+Plot all methods on one stopping-time CDF:
+
+```bash
+python scripts/21_plot_probe_cdf_all_methods.py
+```
+
+This writes:
+
+```text
+figures/probe_stopping_cdf_all_methods.png
+```
+
 ## TabPFN Structured Proxy
 
 TabPFN predicts acceptance probability from structured application-offer
@@ -229,5 +242,5 @@ python -m py_compile src/probe_replay.py scripts/19_run_probe_replay.py scripts/
 - The current replay/simulation implementation is `src/probe_replay.py`.
 - Full prediction CSVs, processed replay pools, LoRA adapters, repetition-level
   replay traces, and raw data are generated artifacts and are excluded from git.
-- The older fixed-budget and pre-PROBE replay scripts are retained only as
-  non-reported diagnostics; the reported algorithm is PROBE.
+- Older fixed-budget and pre-PROBE replay scripts are not part of the current
+  repository state; the reported algorithm is PROBE.

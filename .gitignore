@@ -27,6 +27,7 @@ logs/
 
 # Local writing/export bundles and Codex prompt notes
 deliverables/
+paper/
 CODEX_*.md
 PROMPT_OPTIMIZATION_NOTES.md
 RUN_NEXT_STEPS_PROMPT_OPTIMIZED.md
