@@ -119,6 +119,7 @@ results/simulation_probe_correlation_diagnostics.csv
 results/simulation_probe_ml_proxy.csv
 figures/simulation_probe_gaussian_samples.png
 figures/simulation_probe_gaussian_ratio.png
+figures/simulation_probe_gaussian_benchmark.png
 figures/simulation_probe_learning_time.png
 figures/simulation_probe_certificate_failure.png
 figures/simulation_probe_ml_proxy_alignment.png

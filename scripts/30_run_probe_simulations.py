@@ -20,23 +20,34 @@ from src.probe_simulations import (  # noqa: E402
 
 METHOD_LABELS = {
     "reward_only_probe": "Reward-only PROBE",
-    "proxy_probe": "PROBE",
+    "proxy_probe": "PROBE (learned)",
     "oracle_residual_probe": "Oracle residual",
 }
 
 
 def plot_gaussian(gaussian, figures_dir: Path) -> None:
     colors = {
-        "reward_only_probe": "#222222",
-        "proxy_probe": "#1f77b4",
-        "oracle_residual_probe": "#d62728",
+        "reward_only_probe": "#1f77b4",
+        "proxy_probe": "#2ca02c",
+        "oracle_residual_probe": "#ff7f0e",
+    }
+    markers = {
+        "reward_only_probe": "o",
+        "proxy_probe": "s",
+        "oracle_residual_probe": "o",
+    }
+    linestyles = {
+        "reward_only_probe": "-",
+        "proxy_probe": "-",
+        "oracle_residual_probe": "--",
     }
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     for method, group in gaussian.groupby("method", sort=False):
         ax.plot(
             group["rho"],
             group["mean_stop_pulls"] / 1000.0,
-            marker="o",
+            marker=markers.get(method, "o"),
+            linestyle=linestyles.get(method, "-"),
             linewidth=2.5,
             label=METHOD_LABELS.get(method, method),
             color=colors.get(method),
@@ -52,12 +63,11 @@ def plot_gaussian(gaussian, figures_dir: Path) -> None:
 
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     for method, group in gaussian.groupby("method", sort=False):
-        if method == "reward_only_probe":
-            continue
         ax.plot(
             group["rho"],
             group["sample_ratio_vs_reward_only"],
-            marker="o",
+            marker=markers.get(method, "o"),
+            linestyle=linestyles.get(method, "-"),
             linewidth=2.5,
             label=METHOD_LABELS.get(method, method),
             color=colors.get(method),
@@ -79,6 +89,48 @@ def plot_gaussian(gaussian, figures_dir: Path) -> None:
     ax.legend(frameon=True)
     fig.tight_layout()
     fig.savefig(figures_dir / "simulation_probe_gaussian_ratio.png", dpi=220)
+    plt.close(fig)
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(11.2, 4.2), sharex=True)
+    for method, group in gaussian.groupby("method", sort=False):
+        left.plot(
+            group["rho"],
+            group["mean_stop_pulls"] / 1000.0,
+            marker=markers.get(method, "o"),
+            linestyle=linestyles.get(method, "-"),
+            linewidth=2.2,
+            label=METHOD_LABELS.get(method, method),
+            color=colors.get(method),
+        )
+        right.plot(
+            group["rho"],
+            group["sample_ratio_vs_reward_only"],
+            marker=markers.get(method, "o"),
+            linestyle=linestyles.get(method, "-"),
+            linewidth=2.2,
+            label=METHOD_LABELS.get(method, method),
+            color=colors.get(method),
+        )
+    right.plot(
+        ref["rho"],
+        ref["oracle_residual_factor"],
+        linestyle=(0, (4, 3)),
+        linewidth=1.8,
+        color="#d62728",
+        label="1 - rho^2",
+    )
+    left.set_title("Gaussian benchmark")
+    left.set_xlabel("Common reward-proxy correlation rho")
+    left.set_ylabel("Mean total samples (thousands)")
+    left.grid(True, alpha=0.3)
+    right.set_title("Normalized sample counts")
+    right.set_xlabel("Common reward-proxy correlation rho")
+    right.set_ylabel("Ratio to reward-only PROBE")
+    right.set_ylim(0.15, 1.08)
+    right.grid(True, alpha=0.3)
+    right.legend(frameon=True, fontsize=8.5, loc="lower left")
+    fig.tight_layout()
+    fig.savefig(figures_dir / "simulation_probe_gaussian_benchmark.png", dpi=240)
     plt.close(fig)
 
 
