@@ -30,7 +30,7 @@ def main() -> None:
 
     comparison = pd.read_csv(comparison_path).set_index("method")
 
-    fig, ax = plt.subplots(figsize=(9.2, 5.6))
+    fig, ax = plt.subplots(figsize=(11.8, 5.8), constrained_layout=True)
 
     for method, label, color, linestyle in METHODS:
         reps_path = ROOT / "results" / f"probe_repetitions_{method}.csv"
@@ -44,7 +44,7 @@ def main() -> None:
 
         saving = comparison.loc[method, "sample_saving_vs_baseline"] * 100.0
         mean_stop = comparison.loc[method, "mean_stop_pulls"] / 1000.0
-        legend = f"{label}  mean={mean_stop:.1f}k, saving={saving:.1f}%"
+        legend = f"{label}: {mean_stop:.1f}k, {saving:.1f}%"
         ax.step(vals, y, where="post", label=legend, color=color, linestyle=linestyle, linewidth=2.8)
 
         median = comparison.loc[method, "median_stop_pulls"]
@@ -56,11 +56,19 @@ def main() -> None:
     ax.xaxis.set_major_formatter(FuncFormatter(thousands))
     ax.set_ylim(-0.015, 1.015)
     ax.grid(True, which="major", alpha=0.26)
-    ax.legend(loc="lower right", frameon=True, framealpha=0.95, fontsize=9.5)
-    fig.tight_layout()
+    ax.legend(
+        title="Method: mean stop, saving",
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True,
+        framealpha=0.96,
+        fontsize=9.5,
+        title_fontsize=10.0,
+        borderaxespad=0.0,
+    )
 
     out = ROOT / "figures" / "probe_stopping_cdf_all_methods.png"
-    fig.savefig(out, dpi=240)
+    fig.savefig(out, dpi=240, bbox_inches="tight")
     plt.close(fig)
     print(f"Wrote {out}")
 
