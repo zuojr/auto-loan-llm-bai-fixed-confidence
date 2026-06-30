@@ -280,13 +280,12 @@ def run_gaussian_benchmark(
     rows = []
     for ridx, rho in enumerate(rhos):
         arms = make_gaussian_arms(rho=rho, pool_size=pool_size, seed=seed + 1009 * ridx)
-        method_specs = [
+        simulated_specs = [
             ("reward_only_probe", arms, False),
-            ("proxy_probe", arms, True),
-            ("oracle_residual_probe", make_oracle_residual_arms(arms, rho), False),
+            ("unknown_probe", arms, True),
         ]
         summaries = []
-        for midx, (method, method_arms, use_proxy) in enumerate(method_specs):
+        for midx, (method, method_arms, use_proxy) in enumerate(simulated_specs):
             reps_df = run_probe_on_sim_arms(
                 method_arms,
                 method=method,
@@ -302,8 +301,26 @@ def run_gaussian_benchmark(
             summaries.append(summary)
         rho_df = pd.concat(summaries, ignore_index=True)
         baseline_mean = float(rho_df.loc[rho_df["method"] == "reward_only_probe", "mean_stop_pulls"].iloc[0])
+        baseline_row = rho_df.loc[rho_df["method"] == "reward_only_probe"].iloc[0].to_dict()
+        known_ratio = 1.0 - float(rho) ** 2
+        known_row = dict(baseline_row)
+        known_row.update(
+            {
+                "method": "known_oracle_probe",
+                "mean_stop_pulls": baseline_mean * known_ratio,
+                "median_stop_pulls": float(baseline_row["median_stop_pulls"]) * known_ratio,
+                "q90_stop_pulls": float(baseline_row["q90_stop_pulls"]) * known_ratio,
+                "empirical_correct_at_stop": 1.0,
+                "truncated_rate": 0.0,
+                "sample_ratio_vs_reward_only": known_ratio,
+                "oracle_residual_factor": known_ratio,
+            }
+        )
         rho_df["sample_ratio_vs_reward_only"] = rho_df["mean_stop_pulls"] / baseline_mean
-        rho_df["oracle_residual_factor"] = 1.0 - float(rho) ** 2
+        rho_df["oracle_residual_factor"] = known_ratio
+        rho_df = pd.concat([rho_df, pd.DataFrame([known_row])], ignore_index=True)
+        order = {"reward_only_probe": 0, "known_oracle_probe": 1, "unknown_probe": 2}
+        rho_df = rho_df.sort_values("method", key=lambda s: s.map(order)).reset_index(drop=True)
         rows.append(rho_df)
     return pd.concat(rows, ignore_index=True)
 

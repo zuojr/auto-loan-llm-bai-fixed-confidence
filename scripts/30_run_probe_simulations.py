@@ -20,26 +20,26 @@ from src.probe_simulations import (  # noqa: E402
 
 METHOD_LABELS = {
     "reward_only_probe": "Reward-only PROBE",
-    "proxy_probe": "PROBE (learned)",
-    "oracle_residual_probe": "Oracle residual",
+    "known_oracle_probe": "Known-correlation oracle",
+    "unknown_probe": "Unknown-correlation PROBE",
 }
 
 
 def plot_gaussian(gaussian, figures_dir: Path) -> None:
     colors = {
         "reward_only_probe": "#1f77b4",
-        "proxy_probe": "#2ca02c",
-        "oracle_residual_probe": "#ff7f0e",
+        "known_oracle_probe": "#ff7f0e",
+        "unknown_probe": "#2ca02c",
     }
     markers = {
         "reward_only_probe": "o",
-        "proxy_probe": "s",
-        "oracle_residual_probe": "o",
+        "known_oracle_probe": "o",
+        "unknown_probe": "s",
     }
     linestyles = {
         "reward_only_probe": "-",
-        "proxy_probe": "-",
-        "oracle_residual_probe": "--",
+        "known_oracle_probe": "--",
+        "unknown_probe": "-",
     }
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     for method, group in gaussian.groupby("method", sort=False):
@@ -218,7 +218,7 @@ def main() -> None:
     ap.add_argument("--delta", type=float, default=0.05)
     ap.add_argument("--kappa", type=float, default=1.0)
     ap.add_argument("--max-pulls", type=int, default=2_000_000)
-    ap.add_argument("--gaussian-reps", type=int, default=120)
+    ap.add_argument("--gaussian-reps", type=int, default=500)
     ap.add_argument("--gaussian-pool-size", type=int, default=200_000)
     ap.add_argument("--diagnostic-learning-reps", type=int, default=500)
     ap.add_argument("--diagnostic-failure-reps", type=int, default=15_000)

@@ -65,11 +65,16 @@ def test_gaussian_benchmark_reports_reward_proxy_and_oracle_rows():
     )
 
     assert set(result["rho"]) == {0.0, 0.8}
-    assert set(result["method"]) == {"reward_only_probe", "proxy_probe", "oracle_residual_probe"}
+    assert set(result["method"]) == {"reward_only_probe", "known_oracle_probe", "unknown_probe"}
     assert "sample_ratio_vs_reward_only" in result.columns
     high = result[result["rho"] == 0.8].set_index("method")
-    assert high.loc["proxy_probe", "sample_ratio_vs_reward_only"] < 1.0
-    assert high.loc["oracle_residual_probe", "sample_ratio_vs_reward_only"] < 1.0
+    assert high.loc["known_oracle_probe", "sample_ratio_vs_reward_only"] == high.loc[
+        "known_oracle_probe", "oracle_residual_factor"
+    ]
+    assert high.loc["unknown_probe", "sample_ratio_vs_reward_only"] < 1.0
+    assert high.loc["unknown_probe", "sample_ratio_vs_reward_only"] >= high.loc[
+        "known_oracle_probe", "sample_ratio_vs_reward_only"
+    ]
 
 
 def test_certificate_diagnostics_show_probe_certificate_is_more_conservative():

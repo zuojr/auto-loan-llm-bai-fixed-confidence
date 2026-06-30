@@ -105,7 +105,8 @@ python scripts/30_run_probe_simulations.py
 The script runs:
 
 - paired Gaussian benchmark over `rho in {0, 0.2, 0.4, 0.6, 0.8, 0.9}` with
-  120 repetitions per point;
+  500 repetitions per point, comparing reward-only PROBE, a known-correlation
+  oracle benchmark, and unknown-correlation PROBE;
 - one-arm residual-variance certificate diagnostics with 500 learning
   repetitions and 15,000 undercoverage repetitions per `rho`;
 - nonlinear fitted-model proxy simulation using linear, decision-tree, and

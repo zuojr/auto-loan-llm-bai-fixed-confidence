@@ -31,7 +31,9 @@ The main metric is fixed-confidence stopping time under PROBE.
 The repository also includes synthetic simulations, adapted to the current
 PROBE algorithm:
 
-1. a paired Gaussian benchmark with non-rank-preserving proxy means;
+1. a paired Gaussian benchmark with non-rank-preserving proxy means, comparing
+   reward-only PROBE, a known-correlation oracle benchmark, and unknown-correlation
+   PROBE;
 2. residual-variance certificate diagnostics;
 3. fitted-model proxy simulations in a nonlinear feature environment.
 
