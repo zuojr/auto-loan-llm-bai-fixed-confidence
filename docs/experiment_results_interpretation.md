@@ -81,12 +81,12 @@ Normalized sample-count ratios:
 
 | rho | reward-only mean pulls | known oracle ratio | unknown PROBE ratio | unknown correctness |
 |---:|---:|---:|---:|---:|
-| 0.0 | 7.1k | 1.000 | 1.084 | 0.982 |
-| 0.2 | 7.2k | 0.944 | 1.016 | 0.990 |
-| 0.4 | 6.8k | 0.906 | 0.925 | 0.984 |
-| 0.6 | 6.6k | 0.659 | 0.695 | 0.984 |
-| 0.8 | 6.5k | 0.412 | 0.438 | 0.990 |
-| 0.9 | 6.8k | 0.220 | 0.232 | 0.992 |
+| 0.0 | 6.8k | 1.000 | 1.108 | 0.984 |
+| 0.2 | 7.3k | 0.933 | 1.044 | 0.987 |
+| 0.4 | 6.8k | 0.883 | 0.948 | 0.980 |
+| 0.6 | 6.8k | 0.606 | 0.658 | 0.977 |
+| 0.8 | 6.7k | 0.392 | 0.438 | 0.986 |
+| 0.9 | 7.1k | 0.212 | 0.228 | 0.998 |
 
 This revised setting answers the sample-complexity concern in the first
 synthetic experiment. At `rho=0`, the reward-only baseline now stops at roughly
