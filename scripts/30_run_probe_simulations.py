@@ -126,7 +126,8 @@ def plot_gaussian(gaussian, figures_dir: Path) -> None:
     right.set_title("Normalized sample counts")
     right.set_xlabel("Common reward-proxy correlation rho")
     right.set_ylabel("Ratio to reward-only PROBE")
-    right.set_ylim(0.15, 1.08)
+    ratio_top = max(1.08, float(gaussian["sample_ratio_vs_reward_only"].max()) + 0.06)
+    right.set_ylim(0.15, ratio_top)
     right.grid(True, alpha=0.3)
     right.legend(frameon=True, fontsize=8.5, loc="lower left")
     fig.tight_layout()
@@ -225,6 +226,7 @@ def main() -> None:
     ap.add_argument("--synthetic-tir-log-coef", type=float, default=2.0)
     ap.add_argument("--synthetic-delta-coef", type=float, default=2.0)
     ap.add_argument("--synthetic-delta-power", type=float, default=1.5)
+    ap.add_argument("--synthetic-unknown-tir-multiplier", type=float, default=1.1)
     ap.add_argument("--diagnostic-learning-reps", type=int, default=500)
     ap.add_argument("--diagnostic-failure-reps", type=int, default=15_000)
     ap.add_argument("--ml-reps", type=int, default=120)
@@ -249,6 +251,7 @@ def main() -> None:
         tir_log_coef=args.synthetic_tir_log_coef,
         delta_coef=args.synthetic_delta_coef,
         delta_power=args.synthetic_delta_power,
+        unknown_tir_variance_multiplier=args.synthetic_unknown_tir_multiplier,
     )
     gaussian.to_csv(results_dir / "simulation_probe_gaussian_benchmark.csv", index=False)
     plot_gaussian(gaussian, figures_dir)

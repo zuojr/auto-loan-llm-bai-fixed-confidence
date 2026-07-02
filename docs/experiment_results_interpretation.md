@@ -65,7 +65,10 @@ pool only to estimate the residual-variance certificate,
 size. The online per-round reward mean estimate is still computed from fresh
 samples. The simulation also uses lighter synthetic-only constants
 (`tir_variance_coef=1.1`, `tir_log_coef=2.0`, `delta_coef=2.0`,
-`delta_power=1.5`) while keeping `epsilon_r = 2^-r`.
+`delta_power=1.5`) while keeping `epsilon_r = 2^-r`. The unknown-correlation
+Gaussian branch uses a small extra learning-cost multiplier
+(`unknown_tir_variance_multiplier=1.1`), so it is not treated as if the oracle
+correlation were known for free.
 
 The comparison has three cases:
 
@@ -78,28 +81,26 @@ Normalized sample-count ratios:
 
 | rho | reward-only mean pulls | known oracle ratio | unknown PROBE ratio | unknown correctness |
 |---:|---:|---:|---:|---:|
-| 0.0 | 7.1k | 1.000 | 0.976 | 0.978 |
-| 0.2 | 7.2k | 0.960 | 0.894 | 0.984 |
-| 0.4 | 6.8k | 0.840 | 0.862 | 0.970 |
-| 0.6 | 6.6k | 0.640 | 0.679 | 0.988 |
-| 0.8 | 6.5k | 0.360 | 0.406 | 0.990 |
-| 0.9 | 6.8k | 0.190 | 0.228 | 1.000 |
+| 0.0 | 7.1k | 1.000 | 1.084 | 0.982 |
+| 0.2 | 7.2k | 0.944 | 1.016 | 0.990 |
+| 0.4 | 6.8k | 0.906 | 0.925 | 0.984 |
+| 0.6 | 6.6k | 0.659 | 0.695 | 0.984 |
+| 0.8 | 6.5k | 0.412 | 0.438 | 0.990 |
+| 0.9 | 6.8k | 0.220 | 0.232 | 0.992 |
 
 This revised setting answers the sample-complexity concern in the first
 synthetic experiment. At `rho=0`, the reward-only baseline now stops at roughly
 7k online pulls instead of the much larger conservative count from the earlier
 online-calibration version, while empirical correctness remains about 98%. The
-unknown-proxy version has essentially the same cost and correctness when the
-proxy is uncorrelated, so the lighter constants do not create a large false
-proxy advantage in the zero-correlation case.
+unknown-proxy version has a modest cost overhead when the proxy is uncorrelated,
+so the lighter constants do not create a false proxy advantage in the
+zero-correlation case.
 
 As `rho` increases, the unknown-proxy PROBE curve approaches the oracle
-`1-rho^2` benchmark. The remaining gap is the finite-sample cost of using a
+residualized benchmark. The remaining gap is the finite-sample cost of using a
 learned historical residual-variance certificate rather than being given the
-correlation exactly. At low correlations, finite Monte Carlo fluctuations can
-make the unknown curve slightly above or below the oracle reference; the main
-pattern is the transition from no material gain at `rho=0` to strong
-variance-driven savings at high correlation.
+correlation exactly. The main pattern is the transition from a small learning
+overhead at `rho=0` to strong variance-driven savings at high correlation.
 
 This figure should be described as showing that PROBE can recover the
 known-correlation variance-reduction benchmark in the correctly specified

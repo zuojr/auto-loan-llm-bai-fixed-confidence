@@ -77,11 +77,47 @@ def test_gaussian_benchmark_reports_reward_proxy_and_oracle_rows():
     assert set(result["method"]) == {"reward_only_probe", "known_oracle_probe", "unknown_probe"}
     assert "sample_ratio_vs_reward_only" in result.columns
     high = result[result["rho"] == 0.8].set_index("method")
-    assert high.loc["known_oracle_probe", "sample_ratio_vs_reward_only"] == high.loc[
-        "known_oracle_probe", "oracle_residual_factor"
-    ]
-    assert high.loc["known_oracle_probe", "sample_ratio_vs_reward_only"] < 1.0
+    assert high.loc["known_oracle_probe", "oracle_residual_factor"] == 1.0 - 0.8**2
+    assert high.loc["known_oracle_probe", "oracle_source"] == "known_residualized_reward"
     assert high.loc["unknown_probe", "sample_ratio_vs_reward_only"] < 1.0
+
+
+def test_gaussian_known_oracle_is_simulated_not_scaled_from_reward_only():
+    result = run_gaussian_benchmark(
+        rhos=[0.8],
+        reps=10,
+        pool_size=40_000,
+        delta=0.2,
+        seed=13,
+        max_pulls=80_000,
+    )
+
+    row = result[result["rho"] == 0.8].set_index("method")
+    baseline_mean = row.loc["reward_only_probe", "mean_stop_pulls"]
+    known = row.loc["known_oracle_probe"]
+
+    assert known["oracle_source"] == "known_residualized_reward"
+    assert not np.isclose(
+        known["mean_stop_pulls"],
+        baseline_mean * known["oracle_residual_factor"],
+    )
+
+
+def test_gaussian_unknown_probe_pays_learning_penalty_relative_to_known_oracle():
+    result = run_gaussian_benchmark(
+        rhos=[0.2],
+        reps=5,
+        pool_size=20_000,
+        delta=0.2,
+        seed=19,
+        max_pulls=80_000,
+    )
+
+    row = result[result["rho"] == 0.2].set_index("method")
+
+    assert row.loc["unknown_probe", "tir_variance_coef"] > row.loc[
+        "known_oracle_probe", "tir_variance_coef"
+    ]
 
 
 def test_gaussian_benchmark_uses_historical_certificate_without_online_calibration():

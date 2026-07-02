@@ -22,6 +22,7 @@ DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF = 1.1
 DEFAULT_SYNTHETIC_TIR_LOG_COEF = 2.0
 DEFAULT_SYNTHETIC_DELTA_COEF = 2.0
 DEFAULT_SYNTHETIC_DELTA_POWER = 1.5
+DEFAULT_SYNTHETIC_UNKNOWN_TIR_MULTIPLIER = 1.1
 
 
 @dataclass(frozen=True)
@@ -497,55 +498,49 @@ def run_gaussian_benchmark(
     tir_log_coef: float = DEFAULT_SYNTHETIC_TIR_LOG_COEF,
     delta_coef: float = DEFAULT_SYNTHETIC_DELTA_COEF,
     delta_power: float = DEFAULT_SYNTHETIC_DELTA_POWER,
+    unknown_tir_variance_multiplier: float = DEFAULT_SYNTHETIC_UNKNOWN_TIR_MULTIPLIER,
 ) -> pd.DataFrame:
     rhos = rhos or [0.0, 0.2, 0.4, 0.6, 0.8, 0.9]
     rows = []
     for ridx, rho in enumerate(rhos):
         arms = make_gaussian_arms(rho=rho, pool_size=pool_size, seed=seed + 1009 * ridx)
+        oracle_arms = make_oracle_residual_arms(arms, float(rho))
+        unknown_tir_variance_coef = tir_variance_coef * unknown_tir_variance_multiplier
         simulated_specs = [
-            ("reward_only_probe", arms, False),
-            ("unknown_probe", arms, True),
+            ("reward_only_probe", arms, False, "none", tir_variance_coef),
+            ("known_oracle_probe", oracle_arms, False, "known_residualized_reward", tir_variance_coef),
+            ("unknown_probe", arms, True, "historical_ols_proxy", unknown_tir_variance_coef),
         ]
         summaries = []
-        for midx, (method, method_arms, use_proxy) in enumerate(simulated_specs):
+        common_method_seed = seed + 100_003 * ridx
+        for method, method_arms, use_proxy, oracle_source, method_tir_variance_coef in simulated_specs:
             reps_df = run_historical_probe_on_sim_arms(
                 method_arms,
                 method=method,
                 reps=reps,
                 delta=delta,
                 kappa=kappa,
-                seed=seed + 100_003 * ridx + 7_919 * midx,
+                seed=common_method_seed,
                 max_pulls=max_pulls,
                 use_proxy=use_proxy,
                 history_size=history_size,
-                tir_variance_coef=tir_variance_coef,
+                tir_variance_coef=method_tir_variance_coef,
                 tir_log_coef=tir_log_coef,
                 delta_coef=delta_coef,
                 delta_power=delta_power,
             )
             summary = simulation_summary(reps_df, method)
             summary.insert(0, "rho", float(rho))
+            summary["oracle_source"] = oracle_source
+            summary["unknown_tir_variance_multiplier"] = float(
+                unknown_tir_variance_multiplier if method == "unknown_probe" else 1.0
+            )
             summaries.append(summary)
         rho_df = pd.concat(summaries, ignore_index=True)
         baseline_mean = float(rho_df.loc[rho_df["method"] == "reward_only_probe", "mean_stop_pulls"].iloc[0])
-        baseline_row = rho_df.loc[rho_df["method"] == "reward_only_probe"].iloc[0].to_dict()
         known_ratio = 1.0 - float(rho) ** 2
-        known_row = dict(baseline_row)
-        known_row.update(
-            {
-                "method": "known_oracle_probe",
-                "mean_stop_pulls": baseline_mean * known_ratio,
-                "median_stop_pulls": float(baseline_row["median_stop_pulls"]) * known_ratio,
-                "q90_stop_pulls": float(baseline_row["q90_stop_pulls"]) * known_ratio,
-                "empirical_correct_at_stop": 1.0,
-                "truncated_rate": 0.0,
-                "sample_ratio_vs_reward_only": known_ratio,
-                "oracle_residual_factor": known_ratio,
-            }
-        )
         rho_df["sample_ratio_vs_reward_only"] = rho_df["mean_stop_pulls"] / baseline_mean
         rho_df["oracle_residual_factor"] = known_ratio
-        rho_df = pd.concat([rho_df, pd.DataFrame([known_row])], ignore_index=True)
         order = {"reward_only_probe": 0, "known_oracle_probe": 1, "unknown_probe": 2}
         rho_df = rho_df.sort_values("method", key=lambda s: s.map(order)).reset_index(drop=True)
         rows.append(rho_df)

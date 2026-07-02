@@ -259,7 +259,10 @@ variant: the historical pool estimates the residual-variance certificate, while
 fresh online batches still estimate each round's reward mean. The default
 lighter constants are `--synthetic-tir-variance-coef 1.1`,
 `--synthetic-tir-log-coef 2.0`, `--synthetic-delta-coef 2.0`, and
-`--synthetic-delta-power 1.5`.
+`--synthetic-delta-power 1.5`. The unknown-correlation Gaussian branch applies
+a small extra learning-cost multiplier,
+`--synthetic-unknown-tir-multiplier 1.1`, so the unknown method is not treated
+as if the oracle correlation were free.
 
 This writes the simulation CSVs under `results/` and figures under `figures/`.
 
