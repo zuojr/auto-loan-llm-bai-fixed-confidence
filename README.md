@@ -254,6 +254,13 @@ fitted-model proxy designs, with the replay algorithms updated to PROBE:
 python scripts/30_run_probe_simulations.py
 ```
 
+The first Gaussian benchmark uses a synthetic-only historical-certificate
+variant: the historical pool estimates the residual-variance certificate, while
+fresh online batches still estimate each round's reward mean. The default
+lighter constants are `--synthetic-tir-variance-coef 1.1`,
+`--synthetic-tir-log-coef 2.0`, `--synthetic-delta-coef 2.0`, and
+`--synthetic-delta-power 1.5`.
+
 This writes the simulation CSVs under `results/` and figures under `figures/`.
 
 ## TabPFN Structured Proxy

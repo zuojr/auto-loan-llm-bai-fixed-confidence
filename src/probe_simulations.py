@@ -18,6 +18,10 @@ DEFAULT_GAUSSIAN_REWARD_MEANS = [1.00, 0.90, 0.84, 0.76, 0.70, 0.62, 0.54, 0.44]
 DEFAULT_GAUSSIAN_PROXY_MEANS = [0.00, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75]
 DEFAULT_ML_REWARD_MEANS = [1.00, 0.90, 0.84, 0.76, 0.70]
 DEFAULT_ML_PROXY_MEANS = [0.00, 0.30, 0.60, 0.90, 1.20]
+DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF = 1.1
+DEFAULT_SYNTHETIC_TIR_LOG_COEF = 2.0
+DEFAULT_SYNTHETIC_DELTA_COEF = 2.0
+DEFAULT_SYNTHETIC_DELTA_POWER = 1.5
 
 
 @dataclass(frozen=True)
@@ -103,6 +107,174 @@ def _sample_sim_batch(
     if not use_proxy or arm.proxy is None:
         return reward, None
     return reward, arm.proxy[idx].astype(float) - arm.proxy_mean
+
+
+def historical_variance_upper_certificate(sample_size: int, residual_variance: float) -> float:
+    if sample_size < 7:
+        return math.inf
+    denom = 1.0 - 2.0 * math.sqrt(1.0 / (sample_size - 2.0))
+    if denom <= 0.0:
+        return math.inf
+    return max(float(residual_variance), 0.0) / denom
+
+
+def _historical_sim_certificates(
+    arms: list[SimulationArmData],
+    use_proxy: bool,
+    history_size: int | None,
+    seed: int | None,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    rng = np.random.default_rng(seed)
+    n_arms = len(arms)
+    certificates = np.zeros(n_arms, dtype=float)
+    slopes = np.zeros(n_arms, dtype=float)
+    if history_size is None:
+        effective_history = min(arm.n_pool for arm in arms)
+    else:
+        effective_history = int(history_size)
+        if effective_history < 7:
+            raise ValueError("history_size must be at least 7.")
+
+    for ai, arm in enumerate(arms):
+        n_hist = min(effective_history, arm.n_pool)
+        if n_hist == arm.n_pool:
+            reward = arm.reward.astype(float)
+            proxy = None
+            if use_proxy and arm.proxy is not None:
+                proxy = arm.proxy.astype(float) - arm.proxy_mean
+        else:
+            idx = rng.choice(arm.n_pool, size=n_hist, replace=False)
+            reward = arm.reward[idx].astype(float)
+            proxy = None
+            if use_proxy and arm.proxy is not None:
+                proxy = arm.proxy[idx].astype(float) - arm.proxy_mean
+        _, slope, vhat = ols_intercept_slope_residual_variance(reward, proxy)
+        certificates[ai] = historical_variance_upper_certificate(n_hist, vhat)
+        slopes[ai] = slope
+    return certificates, slopes, effective_history
+
+
+def synthetic_fresh_batch_size(
+    variance_certificate: float,
+    delta_r: float,
+    epsilon_r: float,
+    variance_coef: float = DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF,
+    log_coef: float = DEFAULT_SYNTHETIC_TIR_LOG_COEF,
+) -> int:
+    if not np.isfinite(variance_certificate):
+        return int(2**31 - 1)
+    if not 0 < delta_r < 1:
+        raise ValueError("delta_r must be in (0, 1).")
+    if epsilon_r <= 0:
+        raise ValueError("epsilon_r must be positive.")
+    log_2 = math.log(2.0 / delta_r)
+    log_4 = math.log(4.0 / delta_r)
+    return int(
+        max(
+            3,
+            math.ceil(1.0 + log_coef * log_2),
+            math.ceil(log_coef * log_4),
+            math.ceil(variance_coef * variance_certificate * log_2 * (epsilon_r**-2)),
+        )
+    )
+
+
+def run_historical_probe_once_on_sim_arms(
+    arms: list[SimulationArmData],
+    delta: float = 0.05,
+    kappa: float = 1.0,
+    seed: int | None = None,
+    max_pulls: int = 2_000_000,
+    use_proxy: bool = True,
+    history_size: int | None = None,
+    tir_variance_coef: float = DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF,
+    tir_log_coef: float = DEFAULT_SYNTHETIC_TIR_LOG_COEF,
+    delta_coef: float = DEFAULT_SYNTHETIC_DELTA_COEF,
+    delta_power: float = DEFAULT_SYNTHETIC_DELTA_POWER,
+) -> dict[str, float | int | str]:
+    if len(arms) < 2:
+        raise ValueError("simulation PROBE requires at least two arms.")
+    if delta_coef <= 0:
+        raise ValueError("delta_coef must be positive.")
+    if delta_power < 0:
+        raise ValueError("delta_power must be nonnegative.")
+
+    rng = np.random.default_rng(seed)
+    n_arms = len(arms)
+    true_best = int(np.argmax([arm.reward_mean for arm in arms]))
+    certificates, historical_slopes, effective_history = _historical_sim_certificates(
+        arms,
+        use_proxy=use_proxy,
+        history_size=history_size,
+        seed=None if seed is None else seed + 13_337,
+    )
+
+    pulls = 0
+    n_by_arm = np.zeros(n_arms, dtype=int)
+    last_intercepts = np.array([arm.reward_mean for arm in arms], dtype=float)
+    last_slopes = historical_slopes.copy()
+    active = list(range(n_arms))
+    rounds = 0
+    truncated = False
+
+    while len(active) > 1:
+        rounds += 1
+        delta_r = delta / (delta_coef * n_arms * (rounds**delta_power))
+        epsilon_r = 2.0 ** (-rounds)
+        round_intercepts: dict[int, float] = {}
+
+        for ai in list(active):
+            batch_size = synthetic_fresh_batch_size(
+                certificates[ai],
+                delta_r,
+                epsilon_r,
+                variance_coef=tir_variance_coef,
+                log_coef=tir_log_coef,
+            )
+            if pulls + batch_size > max_pulls:
+                truncated = True
+                break
+            reward, proxy = _sample_sim_batch(arms[ai], rng, batch_size, use_proxy=use_proxy)
+            intercept, slope, _ = ols_intercept_slope_residual_variance(reward, proxy)
+            last_intercepts[ai] = intercept
+            last_slopes[ai] = slope
+            round_intercepts[ai] = intercept
+            pulls += batch_size
+            n_by_arm[ai] += batch_size
+
+        if truncated:
+            break
+
+        best = max(active, key=lambda idx: round_intercepts[idx])
+        threshold = round_intercepts[best] - epsilon_r
+        active = [idx for idx in active if idx == best or round_intercepts[idx] >= threshold]
+
+    if active:
+        recommendation = int(max(active, key=lambda idx: last_intercepts[idx]))
+    else:
+        recommendation = int(np.argmax(last_intercepts))
+    row = _sim_result(
+        pulls,
+        recommendation,
+        true_best,
+        rounds,
+        truncated,
+        0,
+        n_by_arm,
+        certificates,
+        last_slopes,
+    )
+    row.update(
+        {
+            "certificate_source": "historical_pool",
+            "history_size": int(effective_history),
+            "tir_variance_coef": float(tir_variance_coef),
+            "tir_log_coef": float(tir_log_coef),
+            "delta_coef": float(delta_coef),
+            "delta_power": float(delta_power),
+        }
+    )
+    return row
 
 
 def run_probe_once_on_sim_arms(
@@ -248,23 +420,68 @@ def run_probe_on_sim_arms(
     return pd.DataFrame(rows)
 
 
+def run_historical_probe_on_sim_arms(
+    arms: list[SimulationArmData],
+    method: str,
+    reps: int = 120,
+    delta: float = 0.05,
+    kappa: float = 1.0,
+    seed: int = 20260630,
+    max_pulls: int = 2_000_000,
+    use_proxy: bool = True,
+    history_size: int | None = None,
+    tir_variance_coef: float = DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF,
+    tir_log_coef: float = DEFAULT_SYNTHETIC_TIR_LOG_COEF,
+    delta_coef: float = DEFAULT_SYNTHETIC_DELTA_COEF,
+    delta_power: float = DEFAULT_SYNTHETIC_DELTA_POWER,
+) -> pd.DataFrame:
+    rng = np.random.default_rng(seed)
+    rows = []
+    for rep in range(reps):
+        row = run_historical_probe_once_on_sim_arms(
+            arms,
+            delta=delta,
+            kappa=kappa,
+            seed=int(rng.integers(0, 2**31 - 1)),
+            max_pulls=max_pulls,
+            use_proxy=use_proxy,
+            history_size=history_size,
+            tir_variance_coef=tir_variance_coef,
+            tir_log_coef=tir_log_coef,
+            delta_coef=delta_coef,
+            delta_power=delta_power,
+        )
+        row.update({"method": method, "rep": rep, "delta": delta, "kappa": kappa})
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def simulation_summary(reps_df: pd.DataFrame, method: str) -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {
-                "method": method,
-                "delta": float(reps_df["delta"].iloc[0]),
-                "kappa": float(reps_df["kappa"].iloc[0]),
-                "mean_stop_pulls": float(reps_df["stop_pulls"].mean()),
-                "median_stop_pulls": float(reps_df["stop_pulls"].median()),
-                "q90_stop_pulls": float(reps_df["stop_pulls"].quantile(0.90)),
-                "empirical_correct_at_stop": float(reps_df["correct"].mean()),
-                "truncated_rate": float(reps_df["truncated"].mean()),
-                "mean_rounds": float(reps_df["rounds"].mean()),
-                "s_cal": float(reps_df["s_cal"].iloc[0]),
-            }
-        ]
-    )
+    row = {
+        "method": method,
+        "delta": float(reps_df["delta"].iloc[0]),
+        "kappa": float(reps_df["kappa"].iloc[0]),
+        "mean_stop_pulls": float(reps_df["stop_pulls"].mean()),
+        "median_stop_pulls": float(reps_df["stop_pulls"].median()),
+        "q90_stop_pulls": float(reps_df["stop_pulls"].quantile(0.90)),
+        "empirical_correct_at_stop": float(reps_df["correct"].mean()),
+        "truncated_rate": float(reps_df["truncated"].mean()),
+        "mean_rounds": float(reps_df["rounds"].mean()),
+        "s_cal": float(reps_df["s_cal"].iloc[0]),
+    }
+    for col in [
+        "certificate_source",
+        "history_size",
+        "tir_variance_coef",
+        "tir_log_coef",
+        "delta_coef",
+        "delta_power",
+    ]:
+        if col in reps_df.columns:
+            row[col] = reps_df[col].iloc[0]
+    return pd.DataFrame([row])
+
+
 
 
 def run_gaussian_benchmark(
@@ -275,6 +492,11 @@ def run_gaussian_benchmark(
     kappa: float = 1.0,
     seed: int = 20260630,
     max_pulls: int = 2_000_000,
+    history_size: int | None = None,
+    tir_variance_coef: float = DEFAULT_SYNTHETIC_TIR_VARIANCE_COEF,
+    tir_log_coef: float = DEFAULT_SYNTHETIC_TIR_LOG_COEF,
+    delta_coef: float = DEFAULT_SYNTHETIC_DELTA_COEF,
+    delta_power: float = DEFAULT_SYNTHETIC_DELTA_POWER,
 ) -> pd.DataFrame:
     rhos = rhos or [0.0, 0.2, 0.4, 0.6, 0.8, 0.9]
     rows = []
@@ -286,7 +508,7 @@ def run_gaussian_benchmark(
         ]
         summaries = []
         for midx, (method, method_arms, use_proxy) in enumerate(simulated_specs):
-            reps_df = run_probe_on_sim_arms(
+            reps_df = run_historical_probe_on_sim_arms(
                 method_arms,
                 method=method,
                 reps=reps,
@@ -295,6 +517,11 @@ def run_gaussian_benchmark(
                 seed=seed + 100_003 * ridx + 7_919 * midx,
                 max_pulls=max_pulls,
                 use_proxy=use_proxy,
+                history_size=history_size,
+                tir_variance_coef=tir_variance_coef,
+                tir_log_coef=tir_log_coef,
+                delta_coef=delta_coef,
+                delta_power=delta_power,
             )
             summary = simulation_summary(reps_df, method)
             summary.insert(0, "rho", float(rho))

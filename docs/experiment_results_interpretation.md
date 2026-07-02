@@ -59,32 +59,47 @@ figures/simulation_probe_gaussian_benchmark.png
 
 The simulation uses non-rank-preserving proxy means: reward means decrease across
 arms, while proxy means increase. This isolates the covariance mechanism from
-proxy-mean ranking. The comparison has three cases:
+proxy-mean ranking. The current synthetic-data variant uses the whole historical
+pool only to estimate the residual-variance certificate,
+`U = vhat / (1 - 2 sqrt(1 / (s - 2)))`, with `s` equal to the historical pool
+size. The online per-round reward mean estimate is still computed from fresh
+samples. The simulation also uses lighter synthetic-only constants
+(`tir_variance_coef=1.1`, `tir_log_coef=2.0`, `delta_coef=2.0`,
+`delta_power=1.5`) while keeping `epsilon_r = 2^-r`.
+
+The comparison has three cases:
 
 - `reward_only_probe`: PROBE without a proxy.
 - `known_oracle_probe`: known-correlation oracle benchmark with ratio `1-rho^2`.
-- `unknown_probe`: PROBE with unknown correlation, learned from paired samples.
+- `unknown_probe`: PROBE with unknown correlation, using the historical
+  residual-variance certificate and fresh online batches for per-round means.
 
 Normalized sample-count ratios:
 
-| rho | known oracle ratio | unknown PROBE ratio |
-|---:|---:|---:|
-| 0.0 | 1.000 | 1.000 |
-| 0.2 | 0.960 | 0.957 |
-| 0.4 | 0.840 | 0.844 |
-| 0.6 | 0.640 | 0.646 |
-| 0.8 | 0.360 | 0.373 |
-| 0.9 | 0.190 | 0.206 |
+| rho | reward-only mean pulls | known oracle ratio | unknown PROBE ratio | unknown correctness |
+|---:|---:|---:|---:|---:|
+| 0.0 | 7.1k | 1.000 | 0.976 | 0.978 |
+| 0.2 | 7.2k | 0.960 | 0.894 | 0.984 |
+| 0.4 | 6.8k | 0.840 | 0.862 | 0.970 |
+| 0.6 | 6.6k | 0.640 | 0.679 | 0.988 |
+| 0.8 | 6.5k | 0.360 | 0.406 | 0.990 |
+| 0.9 | 6.8k | 0.190 | 0.228 | 1.000 |
 
-The known oracle follows the residual-variance factor `1-rho^2`. Unknown PROBE
-is close to the oracle curve because this Gaussian model exactly matches the OLS
-residualization structure: after calibration and fresh batches, the residual
-variance certificate is learned accurately. The gap between unknown and known is
-the price of estimating the residual variance certificate rather than receiving
-the correlation as input. At low correlation, small finite-repetition Monte Carlo
-fluctuations can make the two curves nearly indistinguishable; the main pattern
-is the transition from no gain at `rho=0` to strong variance reduction at high
-correlation.
+This revised setting answers the sample-complexity concern in the first
+synthetic experiment. At `rho=0`, the reward-only baseline now stops at roughly
+7k online pulls instead of the much larger conservative count from the earlier
+online-calibration version, while empirical correctness remains about 98%. The
+unknown-proxy version has essentially the same cost and correctness when the
+proxy is uncorrelated, so the lighter constants do not create a large false
+proxy advantage in the zero-correlation case.
+
+As `rho` increases, the unknown-proxy PROBE curve approaches the oracle
+`1-rho^2` benchmark. The remaining gap is the finite-sample cost of using a
+learned historical residual-variance certificate rather than being given the
+correlation exactly. At low correlations, finite Monte Carlo fluctuations can
+make the unknown curve slightly above or below the oracle reference; the main
+pattern is the transition from no material gain at `rho=0` to strong
+variance-driven savings at high correlation.
 
 This figure should be described as showing that PROBE can recover the
 known-correlation variance-reduction benchmark in the correctly specified

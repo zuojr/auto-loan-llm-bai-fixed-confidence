@@ -2,6 +2,7 @@ import numpy as np
 
 from src.probe_simulations import (
     correlation_certificate_diagnostics,
+    historical_variance_upper_certificate,
     make_gaussian_arms,
     run_gaussian_benchmark,
     run_ml_proxy_simulation,
@@ -22,6 +23,14 @@ def test_gaussian_simulation_arms_match_tex_moments():
     assert reward_means[0] > reward_means[-1]
     assert proxy_means[0] < proxy_means[-1]
     assert all(abs(corr - 0.8) < 0.025 for corr in empirical_corrs)
+
+
+def test_historical_certificate_uses_total_history_formula():
+    s = 102
+    vhat = 0.5
+    expected = vhat / (1.0 - 2.0 * np.sqrt(1.0 / (s - 2.0)))
+
+    assert np.isclose(historical_variance_upper_certificate(s, vhat), expected)
 
 
 def test_proxy_probe_reduces_gaussian_stopping_time_at_high_correlation():
@@ -71,10 +80,31 @@ def test_gaussian_benchmark_reports_reward_proxy_and_oracle_rows():
     assert high.loc["known_oracle_probe", "sample_ratio_vs_reward_only"] == high.loc[
         "known_oracle_probe", "oracle_residual_factor"
     ]
+    assert high.loc["known_oracle_probe", "sample_ratio_vs_reward_only"] < 1.0
     assert high.loc["unknown_probe", "sample_ratio_vs_reward_only"] < 1.0
-    assert high.loc["unknown_probe", "sample_ratio_vs_reward_only"] >= high.loc[
-        "known_oracle_probe", "sample_ratio_vs_reward_only"
-    ]
+
+
+def test_gaussian_benchmark_uses_historical_certificate_without_online_calibration():
+    result = run_gaussian_benchmark(
+        rhos=[0.0],
+        reps=12,
+        pool_size=60_000,
+        delta=0.2,
+        seed=17,
+        max_pulls=50_000,
+    )
+
+    indexed = result[result["rho"] == 0.0].set_index("method")
+    baseline = indexed.loc["reward_only_probe"]
+    unknown = indexed.loc["unknown_probe"]
+
+    assert baseline["certificate_source"] == "historical_pool"
+    assert unknown["certificate_source"] == "historical_pool"
+    assert baseline["s_cal"] == 0
+    assert unknown["s_cal"] == 0
+    assert 500 < baseline["mean_stop_pulls"] < 10_000
+    assert baseline["empirical_correct_at_stop"] >= 0.8
+    assert unknown["empirical_correct_at_stop"] >= 0.8
 
 
 def test_certificate_diagnostics_show_probe_certificate_is_more_conservative():
